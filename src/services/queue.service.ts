@@ -16,6 +16,9 @@ let queue: Queue<DownloadJobData> | null = null;
 export function getQueue(): Queue<DownloadJobData> {
   if (!queue) {
     queue = new Bull<DownloadJobData>(QUEUE_NAME, config.redisUrl, {
+      // Railway's internal Redis hostname is IPv6-only. Force ioredis to
+      // try both address families so DNS lookup succeeds.
+      redis: { family: 0 },
       defaultJobOptions: {
         removeOnComplete: { age: 3600, count: 200 },
         removeOnFail: { age: 86_400, count: 200 },

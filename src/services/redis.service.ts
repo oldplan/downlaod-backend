@@ -16,6 +16,9 @@ function buildRedis(role: string): Redis {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
     lazyConnect: false,
+    // Railway's internal hostnames (e.g. redis.railway.internal) only resolve
+    // via IPv6. family: 0 lets Node try both A and AAAA records.
+    family: 0,
   };
   const client = new IORedis(config.redisUrl, options);
   client.on('error', (err) => log.error(`${role} error: ${err.message}`));
