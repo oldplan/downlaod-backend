@@ -50,11 +50,16 @@ export function buildApp(): Express {
 
 async function main(): Promise<void> {
   const app = buildApp();
-  startCleanupSweeper();
-  await startWorker();
 
+  // Bring up HTTP first so /health is reachable while Redis / Bull connect.
+  // Healthcheck-driven hosts (Railway, Fly, etc.) need a 200 within ~30s.
   const server = app.listen(config.port, () => {
     log.info(`fetch backend listening on :${config.port}`, { env: config.nodeEnv });
+  });
+
+  startCleanupSweeper();
+  startWorker().catch((err) => {
+    log.error('worker failed to start', { error: (err as Error).message });
   });
 
   const shutdown = async (signal: string) => {
